@@ -13,14 +13,12 @@ PORT = args.port
 if not EV3_IP:
     sys.exit("❌  Specify the EV3 IP with positional arg or --ip")
 
-last_key = None
+pressed_keys = []
 
 
 def on_press(key):
-    global last_key
-    if key == last_key:
+    if key in pressed_keys:
         return
-
     if key == keyboard.KeyCode(char="w"):
         cmd = "LEFT_ON"
     elif key == keyboard.KeyCode(char="s"):
@@ -30,25 +28,21 @@ def on_press(key):
     elif key == keyboard.Key.down:
         cmd = "RIGHT_BACK"
     elif key == keyboard.KeyCode(char="i"):
-        cmd = "LIFT_UP"
+        cmd = "LIFT_ON"
     elif key == keyboard.KeyCode(char="k"):
-        cmd = "LIFT_DOWN"
+        cmd = "LIFT_BACK"
     elif key == keyboard.Key.space:
-        cmd = "LIFT_STOP"
+        cmd = "INVERT"
     else:
         return
 
-    last_key = key
+    pressed_keys.append(key)
     s.sendall((cmd + "\n").encode())
     print(f"→ {cmd}")
 
 
 def on_release(key):
-    # TODO Handle release when multiple keys are pressed
-    global last_key
-    if key == last_key:
-        last_key = None
-    elif key == keyboard.Key.esc:
+    if key == keyboard.Key.esc:
         # Stop listener
         return False
 
@@ -57,9 +51,11 @@ def on_release(key):
     elif key == keyboard.Key.up or key == keyboard.Key.down:
         cmd = "RIGHT_OFF"
     elif key == keyboard.KeyCode(char="i") or key == keyboard.KeyCode(char="k"):
-        cmd = "LIFT_STOP"
+        cmd = "LIFT_OFF"
     else:
         return
+    if key in pressed_keys:
+        pressed_keys.remove(key)
     s.sendall((cmd + "\n").encode())
     print(f"→ {cmd}")
 
