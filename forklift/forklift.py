@@ -40,8 +40,6 @@ speed = -300
 lift_speed = 700
 left_motor = LargeMotor(OUTPUT_A)
 right_motor = LargeMotor(OUTPUT_D)
-# right_motor.ramp_up_sp = 13
-# left_motor.ramp_up_sp = 13
 
 
 lift_motor = MediumMotor(OUTPUT_C)
@@ -61,13 +59,14 @@ while True:  # Loop to keep the script running
     conn, addr = srv.accept()
     print("Connected from", addr)
 
+    f = conn.makefile("r")
 
     try:
         while True:
-            data = conn.recv(16)
-            if not data:
+            cmd = f.readline()
+            if not cmd:
                 break
-            cmd = data.decode().strip().upper()
+            cmd = cmd.strip().upper()
             if cmd == "LEFT_ON":
                 left_motor.run_forever(speed_sp=speed if not inversed else -speed)
             elif cmd == "LEFT_OFF":
@@ -98,10 +97,17 @@ while True:  # Loop to keep the script running
                     play_type=Sound.PLAY_NO_WAIT_FOR_COMPLETE,
                 )
                 inversed = not inversed
+            elif cmd == "OFF":
+                left_motor.stop()
+                right_motor.stop()
+                lift_motor.stop()
+            else:
+                print("Unknown command:", cmd)
 
     except Exception as e:
         print("Error:", e)
     finally:
+        f.close()
         conn.close()
         srv.close()
         left_motor.stop()
