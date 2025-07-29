@@ -1,9 +1,13 @@
 # Server (receive)
 import socket, threading
 
-TARGET_IP = '192.168.1.101'
-TARGET_PORT = 12346
-MY_PORT = 12345
+# Modify based on the other PC
+TARGET_IP = '192.168.8.137'
+TARGET_PORT = 12345
+MY_PORT = 25565
+
+# True for sender, False for reciever
+MASTER=True
 
 def recv():
     s = socket.socket()
@@ -13,12 +17,17 @@ def recv():
     while True:
         data = conn.recv(1)
         if data:
-            print("Received from PC2:", data)
-threading.Thread(target=recv, daemon=True).start()
+            print("Received:", data)
 
-# Client (send)
+if not MASTER:
+    threading.Thread(target=recv, daemon=True).start()
+    while True: pass
+
+# Master (send)
 s = socket.socket()
+print(f'Connecting to {TARGET_IP}')
 s.connect((TARGET_IP, TARGET_PORT))  # PC2’s receiver
+print(f'Connected to {TARGET_IP}')
 while True:
-    msg = input("Send to PC2: ")
+    msg = input("Send: ") + "\n"
     s.send(msg.encode())
