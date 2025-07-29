@@ -33,7 +33,7 @@ def _slave():
     print(f'Connected to {TARGET_IP}')
     while True:
         data = conn.recv(1)
-        if data == CHAR_SWITCH:
+        if data == CHAR_SWITCH.encode():
             print("Changing!:", data)
 
 def _master():
